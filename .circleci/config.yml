@@ -1,0 +1,102 @@
+version: 2.1
+
+commands:
+  install-requirements:
+    description: Install Dev Requirements for Testing
+    steps:
+      - run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r requirements/dev.txt
+  install-gitgub-cli:
+    description: Install GitHub CLI
+    steps:
+      - run: |
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+          | sudo gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg
+
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] \
+          https://cli.github.com/packages stable main" \
+          | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+
+          sudo apt update
+          sudo apt install gh
+  authenticate-to-github-cli:
+    description: Authenticate to GH through CLI
+    steps:
+      - run: |
+          echo $GH_CLI_AUTH_TOKEN | gh auth login --with-token
+          gh auth status
+
+jobs:
+  run-linter-checks:
+    docker:
+      - image: circleci/python:3.10
+    steps:
+      - checkout
+      - install-requirements
+      - install-gitgub-cli
+      - authenticate-to-github-cli
+      - run:
+          name: Run Flake8 on modified files
+            command: |
+              export PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | sed 's/.*\///')
+              export PR_CHANGED_FILES=$(gh pr diff $PR_NUMBER | grep +++ | grep -E '\.py$' | cut -c 7-)
+              echo $PR_CHANGED_FILES
+              if [ -z "${PR_CHANGED_FILES}" ]; then
+                echo "No files to lint"
+                exit 0
+              fi
+              flake8 $PR_CHANGED_FILES
+  run-typechek-checks:
+    docker:
+      - image: circleci/python:3.10
+    steps:
+      - checkout
+      - install-requirements
+      - install-gitgub-cli
+      - authenticate-to-github-cli
+      - run:
+          name: Run MyPy on modified files
+          command: |
+            export PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | sed 's/.*\///')
+            export PR_CHANGED_FILES=$(gh pr diff $PR_NUMBER | grep +++ | grep -E '\.py$' | cut -c 7-)
+            echo $PR_CHANGED_FILES
+            if [ -z "${PR_CHANGED_FILES}" ]; then
+              echo "No files to lint"
+              exit 0
+            fi
+            mypy --install-types --non-interactive $PR_CHANGED_FILES
+  build-and-deploy-image:
+    docker:
+      - image: docker:20.10-git
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build Application Docker Image
+          command: |
+            docker build -f Dockerfile -t ideal-happiness .
+      - deploy:
+          name: Push Docker Image to DO Container Registry
+          command: |
+            docker login -u $DO_API_KEY -p $DO_API_KEY registry.digitalocean.com
+            docker image tag ideal-happiness:$TRAVIS_TAG registry.digitalocean.com/ideal-happiness/ideal-happiness:latest
+            docker image tag ideal-happiness:$TRAVIS_TAG registry.digitalocean.com/ideal-happiness/ideal-happiness:$TRAVIS_TAG
+            docker image tag ideal-happiness:$TRAVIS_TAG registry.digitalocean.com/ideal-happiness/ideal-happiness:${TRAVIS_TAG%.*}
+            docker image tag ideal-happiness:$TRAVIS_TAG registry.digitalocean.com/ideal-happiness/ideal-happiness:${TRAVIS_TAG%%.*}
+            docker image push --all-tags registry.digitalocean.com/ideal-happiness/ideal-happiness
+
+
+workflows:
+  Tests:
+    jobs:
+      - run-linter-checks
+      - run-typecheck-checks
+  Build:
+    jobs:
+      - build-and-deploy-image:
+          filters:
+            tags:
+              only: /^v\d+\.\d+\.\d+$/
+            branches:
+              ignore: /.*/
