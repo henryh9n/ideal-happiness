@@ -1,3 +1,3 @@
 # ideal-happiness
 
-[![Build Status](https://app.travis-ci.com/henryh9n/ideal-happiness.svg?branch=main)](https://app.travis-ci.com/henryh9n/ideal-happiness)
+[![CircleCI](https://circleci.com/gh/henryh9n/ideal-happiness/tree/main.svg?style=svg)](https://circleci.com/gh/henryh9n/ideal-happiness/tree/main)
