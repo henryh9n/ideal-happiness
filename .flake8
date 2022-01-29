@@ -1,0 +1,4 @@
+[flake8]
+ignore = E305
+exclude = */__init__.py,__pycache__
+max-line-length = 119
