@@ -80,12 +80,10 @@ jobs:
           name: Push Docker Image to DO Container Registry
           command: |
             docker login -u $DO_API_KEY -p $DO_API_KEY registry.digitalocean.com
-            docker image tag ideal-happiness:$CIRCLE_TAG registry.digitalocean.com/ideal-happiness/ideal-happiness:latest
-            docker image tag ideal-happiness:$CIRCLE_TAG registry.digitalocean.com/ideal-happiness/ideal-happiness:$CIRCLE_TAG
-            docker image tag ideal-happiness:$CIRCLE_TAG registry.digitalocean.com/ideal-happiness/ideal-happiness:${CIRCLE_TAG%.*}
-            docker image tag ideal-happiness:$CIRCLE_TAG registry.digitalocean.com/ideal-happiness/ideal-happiness:${CIRCLE_TAG%%.*}
-            docker image push --all-tags registry.digitalocean.com/ideal-happiness/ideal-happiness
-
+            docker image tag ideal-happiness registry.digitalocean.com/ideal-happiness/ideal-happiness:latest
+            docker image tag ideal-happiness registry.digitalocean.com/ideal-happiness/ideal-happiness:$CIRCLE_TAG
+            docker image tag ideal-happiness registry.digitalocean.com/ideal-happiness/ideal-happiness:${CIRCLE_TAG%.*}
+            docker image tag ideal-happiness registry.digitalocean.com/ideal-happiness/ideal-happiness:${CIRCLE_TAG%%.*}
 
 workflows:
   Tests:
