@@ -38,15 +38,15 @@ jobs:
       - authenticate-to-github-cli
       - run:
           name: Run Flake8 on modified files
-            command: |
-              export PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | sed 's/.*\///')
-              export PR_CHANGED_FILES=$(gh pr diff $PR_NUMBER | grep +++ | grep -E '\.py$' | cut -c 7-)
-              echo $PR_CHANGED_FILES
-              if [ -z "${PR_CHANGED_FILES}" ]; then
-                echo "No files to lint"
-                exit 0
-              fi
-              flake8 $PR_CHANGED_FILES
+          command: |
+            export PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | sed 's/.*\///')
+            export PR_CHANGED_FILES=$(gh pr diff $PR_NUMBER | grep +++ | grep -E '\.py$' | cut -c 7-)
+            echo $PR_CHANGED_FILES
+            if [ -z "${PR_CHANGED_FILES}" ]; then
+              echo "No files to lint"
+              exit 0
+            fi
+            flake8 $PR_CHANGED_FILES
   run-typechek-checks:
     docker:
       - image: circleci/python:3.10
