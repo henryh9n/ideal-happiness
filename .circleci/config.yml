@@ -47,7 +47,7 @@ jobs:
               exit 0
             fi
             flake8 $PR_CHANGED_FILES
-  run-typechek-checks:
+  run-typecheck-checks:
     docker:
       - image: circleci/python:3.10
     steps:
