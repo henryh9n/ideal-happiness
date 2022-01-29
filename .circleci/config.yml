@@ -84,6 +84,7 @@ jobs:
             docker image tag ideal-happiness registry.digitalocean.com/ideal-happiness/ideal-happiness:$CIRCLE_TAG
             docker image tag ideal-happiness registry.digitalocean.com/ideal-happiness/ideal-happiness:${CIRCLE_TAG%.*}
             docker image tag ideal-happiness registry.digitalocean.com/ideal-happiness/ideal-happiness:${CIRCLE_TAG%%.*}
+            docker image push --all-tags registry.digitalocean.com/ideal-happiness/ideal-happiness
 
 workflows:
   Tests:
