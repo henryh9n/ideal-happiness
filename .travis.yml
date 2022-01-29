@@ -1,0 +1,31 @@
+language: python
+python:
+  - 3.10
+
+services:
+  - docker
+
+jobs:
+  include:
+    - stage: test
+      script:
+        - python3 -m pip install --upgrade pip
+        - python3 -m pip install requirements/dev.txt
+        - flake8 .
+        - mypy .
+    - stage: 'Build & Deploy'
+      before_script:
+        - docker login -u $DO_API_KEY -p $DO_API_KEY registry.digitalocean.com
+      script:
+        - docker build -f Dockerfile -t ideal-happiness:$TRAVIS_TAG
+        - docker image tag ideal-happiness:$TRAVIS_TAG registry.digitalocean.com/ideal-happiness/ideal-happiness:latest
+        - docker image tag ideal-happiness:$TRAVIS_TAG registry.digitalocean.com/ideal-happiness/ideal-happiness:$TRAVIS_TAG
+        - docker image tag ideal-happiness:$TRAVIS_TAG registry.digitalocean.com/ideal-happiness/ideal-happiness:${TRAVIS_TAG%.*}
+        - docker image tag ideal-happiness:$TRAVIS_TAG registry.digitalocean.com/ideal-happiness/ideal-happiness:${TRAVIS_TAG%%.*}
+        - docker image push --all-tags registry.digitalocean.com/ideal-happiness/ideal-happiness
+
+stages:
+  - name: test
+    if: type = pull_request
+  - name: build
+    if: tag IS present
