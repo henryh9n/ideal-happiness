@@ -71,7 +71,7 @@ jobs:
             mypy --install-types --non-interactive $PR_CHANGED_FILES
   build-and-deploy-image:
     docker:
-      - image: docker:20.10-git
+      - image: cimg/base:2021.07
     steps:
       - checkout
       - setup_remote_docker
