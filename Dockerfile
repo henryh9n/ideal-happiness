@@ -8,4 +8,4 @@ RUN python3 -m pip install -r /requirements/prod.txt
 COPY src /ideal-happiness
 WORKDIR /ideal-happiness
 
-CMD ["gunicorn",  "api_entry:app", "-w", "2", "--bind", "0.0.0.0:8080", "--worker-class", "aiohttp.GunicornWebWorker"]
+CMD gunicorn api_entry:app -w 2 --bind 0.0.0.0:$PORT --worker-class aiohttp.GunicornWebWorker
