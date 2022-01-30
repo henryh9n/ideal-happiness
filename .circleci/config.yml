@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  heroku: circleci/heroku@1.2.6
+
 commands:
   install-requirements:
     description: Install Dev Requirements for Testing
@@ -76,15 +79,12 @@ jobs:
           name: Build Application Docker Image
           command: |
             docker build -f Dockerfile -t ideal-happiness .
-      - deploy:
-          name: Push Docker Image to DO Container Registry
-          command: |
-            docker login -u $DO_API_KEY -p $DO_API_KEY registry.digitalocean.com
-            docker image tag ideal-happiness registry.digitalocean.com/ideal-happiness/ideal-happiness:latest
-            docker image tag ideal-happiness registry.digitalocean.com/ideal-happiness/ideal-happiness:$CIRCLE_TAG
-            docker image tag ideal-happiness registry.digitalocean.com/ideal-happiness/ideal-happiness:${CIRCLE_TAG%.*}
-            docker image tag ideal-happiness registry.digitalocean.com/ideal-happiness/ideal-happiness:${CIRCLE_TAG%%.*}
-            docker image push --all-tags registry.digitalocean.com/ideal-happiness/ideal-happiness
+      - heroku/install
+      - run: heroku container:login
+      - heroku/push-docker-image:
+          process-types: web
+      - heroku/release-docker-image:
+          process-types: web
 
 workflows:
   Tests:
